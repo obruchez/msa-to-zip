@@ -3,10 +3,29 @@ package org.bruchez.olivier.msatozip
 import java.io.DataInputStream
 import java.nio.file._
 
-case class MsaImage(sectorsPerTrack: Int,
+import scala.collection.mutable.ArrayBuffer
+
+case class MsaImage(sectorLength: Int,
+                    sectorsPerTrack: Int,
                     startTrack: Int,
                     endTrack: Int,
-                    sides: Seq[MsaImage.Side])
+                    sides: Seq[MsaImage.Side]) {
+  lazy val data: Array[Byte] = {
+    val buffer = new ArrayBuffer[Byte]()
+
+    for {
+      side <- sides.indices
+      track <- startTrack to endTrack
+      sector <- 0 until sectorsPerTrack
+    } {
+      buffer.append(sides(side).tracks(track - startTrack).sectors(sector).data: _*)
+    }
+
+    buffer.toArray
+  }
+
+  lazy val totalLength: Long = sides.length * (endTrack - startTrack + 1) * sectorsPerTrack * sectorLength
+}
 
 object MsaImage {
   case class Sector(data: Array[Byte])
@@ -24,8 +43,8 @@ object MsaImage {
 
       val sectorsPerTrack = dis.readUnsignedShort()
 
-      val sideCount = dis.readUnsignedShort()
-      assert(sideCount == 0 || sideCount == 1, s"Unexpected side count: $sideCount")
+      val sideCount = dis.readUnsignedShort() + 1
+      assert(sideCount == 1 || sideCount == 2, s"Unexpected side count: $sideCount")
 
       val startTrack = dis.readUnsignedShort()
 
@@ -34,7 +53,7 @@ object MsaImage {
       val tracksBySideAndTrack =
         (for {
           track <- startTrack to endTrack
-          side <- 0 to sideCount
+          side <- 0 until sideCount
         } yield {
           (side, track) -> Track(dis, sectorsPerTrack)
         }).toMap
@@ -44,8 +63,12 @@ object MsaImage {
           Side(tracks = for (track <- startTrack to endTrack) yield tracksBySideAndTrack((side, track)))
         }
 
-
-      MsaImage(sectorsPerTrack = sectorsPerTrack, startTrack = startTrack, endTrack = endTrack, sides = sides)
+      MsaImage(
+        sectorLength = SectorLength,
+        sectorsPerTrack = sectorsPerTrack,
+        startTrack = startTrack,
+        endTrack = endTrack,
+        sides = sides)
     } finally {
       dis.close()
     }
