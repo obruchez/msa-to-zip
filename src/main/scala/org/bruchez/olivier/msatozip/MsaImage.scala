@@ -1,10 +1,98 @@
 package org.bruchez.olivier.msatozip
 
-object MsaImage {
+import java.io.DataInputStream
+import java.nio.file._
 
+case class MsaImage(sectorsPerTrack: Int,
+                    startTrack: Int,
+                    endTrack: Int,
+                    sides: Seq[MsaImage.Side])
+
+object MsaImage {
+  case class Sector(data: Array[Byte])
+
+  case class Track(sectors: Seq[Sector])
+
+  case class Side(tracks: Seq[Track])
+
+  def apply(file: Path): MsaImage = {
+    val dis = new DataInputStream(Files.newInputStream(file))
+
+    try {
+      val signature = dis.readUnsignedShort()
+      assert(signature == MsaSignature, f"Unexpected header signature: $signature%X")
+
+      val sectorsPerTrack = dis.readUnsignedShort()
+
+      val sideCount = dis.readUnsignedShort()
+      assert(sideCount == 0 || sideCount == 1, s"Unexpected side count: $sideCount")
+
+      val startTrack = dis.readUnsignedShort()
+
+      val endTrack = dis.readUnsignedShort()
+
+      val tracksBySideAndTrack =
+        (for {
+          track <- startTrack to endTrack
+          side <- 0 to sideCount
+        } yield {
+          (side, track) -> Track(dis, sectorsPerTrack)
+        }).toMap
+
+      val sides =
+        for (side <- 0 until sideCount) yield {
+          Side(tracks = for (track <- startTrack to endTrack) yield tracksBySideAndTrack((side, track)))
+        }
+
+
+      MsaImage(sectorsPerTrack = sectorsPerTrack, startTrack = startTrack, endTrack = endTrack, sides = sides)
+    } finally {
+      dis.close()
+    }
+  }
+
+  private val MsaSignature = 0x0E0F
+
+  private val SectorLength = 512
+
+  object Track {
+    def apply(dis: DataInputStream, sectorsPerTrack: Int): Track = {
+      val dataLength = dis.readUnsignedShort()
+
+      val expectedLength = SectorLength * sectorsPerTrack
+
+      val trackData =
+        if (dataLength != expectedLength) {
+          // Compressed data
+          val decodedData = RunLengthEncoding.decode(dis, dataLength)
+
+          assert(decodedData.length == expectedLength, s"Decoded track has unexpected size (${decodedData.length} bytes vs $expectedLength bytes)")
+
+          decodedData
+        } else {
+          // Uncompressed data
+          val trackData = new Array[Byte](dataLength)
+          val readByteCount = dis.read(trackData)
+
+          assert(readByteCount == dataLength, s"Could not read entire track ($dataLength bytes)")
+
+          trackData
+        }
+
+      val sectors =
+        for (sector <- 0 until sectorsPerTrack) yield {
+          val offset = sector * SectorLength
+          Sector(data = trackData.slice(offset, offset + SectorLength))
+        }
+
+      Track(sectors = sectors)
+    }
+  }
 }
 
 /*
+http://info-coach.fr/atari/documents/_mydoc/FD_Image_File_Format.pdf
+
 MSA FILE FORMAT
 The .MSA image file format is made up as follows:
 Header:
