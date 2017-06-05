@@ -2,6 +2,8 @@ package org.bruchez.olivier.msatozip
 
 import java.nio.ByteBuffer
 
+// Note: this will only work for Atari floppies that have been formatted correctly for PC
+
 class MsaBlockDevice(msaImage: MsaImage) extends de.waldheinz.fs.BlockDevice {
   private var closed = false
 
