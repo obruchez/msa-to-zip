@@ -5,11 +5,13 @@ import java.nio.file._
 
 import scala.collection.mutable.ArrayBuffer
 
-case class MsaImage(sectorLength: Int,
-                    sectorsPerTrack: Int,
-                    startTrack: Int,
-                    endTrack: Int,
-                    sides: Seq[MsaImage.Side]) {
+case class MsaImage(
+  sectorLength: Int,
+    sectorsPerTrack: Int,
+    startTrack: Int,
+    endTrack: Int,
+    sides: Seq[MsaImage.Side]
+) {
   lazy val data: Array[Byte] = {
     val buffer = new ArrayBuffer[Byte]()
 
@@ -68,7 +70,8 @@ object MsaImage {
         sectorsPerTrack = sectorsPerTrack,
         startTrack = startTrack,
         endTrack = endTrack,
-        sides = sides)
+        sides = sides
+      )
     } finally {
       dis.close()
     }

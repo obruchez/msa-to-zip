@@ -12,6 +12,10 @@ object MsaToZip {
     //val msaImage = MsaImage(Paths.get("/Users/olivierbruchez/Downloads/atari37.msa"))
     val msaImage = MsaImage(Paths.get("/Users/olivierbruchez/Downloads/olivier1.msa"))
 
+    val atariFilesystem = new AtariFilesystem(msaImage)
+    val bootSector = atariFilesystem.bootSector
+    bootSector.print()
+    System.exit(0)
 
     /*val bootSector = msaImage.sides.head.tracks.head.sectors.head
     bootSector.data(510) = 0x55.toByte
