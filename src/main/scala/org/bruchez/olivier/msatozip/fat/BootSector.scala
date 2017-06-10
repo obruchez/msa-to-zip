@@ -15,6 +15,8 @@ case class BootSector(
     sectorsPerTrack: Int,
     sideCount: Int
 ) {
+  lazy val clustersByFat: Int = fatSizeInSectors * bytesPerSector * 2 / 3
+
   def print(): Unit = {
     println(s"serialNumber = $serialNumber")
     println(s"bytesPerSector = $bytesPerSector")
@@ -36,7 +38,7 @@ object BootSector {
     is.skipBytes(2)
 
     // OEM
-    is.skipBytes(6)
+    is.skipBytes(OemLength)
 
     // SERIAL
     val serialNumber = is.readUnsigned24LittleEndian()
@@ -85,4 +87,6 @@ object BootSector {
     )
   }
   // scalastyle:on method.length
+
+  private val OemLength = 6
 }
