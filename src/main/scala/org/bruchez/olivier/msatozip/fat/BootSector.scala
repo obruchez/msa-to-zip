@@ -17,6 +17,15 @@ case class BootSector(
 ) {
   lazy val clustersByFat: Int = fatSizeInSectors * bytesPerSector * 2 / 3
 
+  // The FAT is right after the boot sector (i.e. we expect reservedSectorCount == 1)
+  lazy val fatOffset: Int = reservedSectorCount * bytesPerSector
+
+  // The root directory is after the boot sector and the FAT(s)
+  lazy val rootDirectoryOffset: Int = (reservedSectorCount + fatSizeInSectors * fatCount) * bytesPerSector
+
+  // The user data is after the root directory
+  lazy val userDataOffset: Int = rootDirectoryOffset + rootDirectoryEntryCount * Entry.Length
+
   def print(): Unit = {
     println(s"serialNumber = $serialNumber")
     println(s"bytesPerSector = $bytesPerSector")
@@ -28,6 +37,11 @@ case class BootSector(
     println(s"fatSizeInSectors = $fatSizeInSectors")
     println(s"sectorsPerTrack = $sectorsPerTrack")
     println(s"sideCount = $sideCount")
+    println()
+    println(s"clustersByFat = $clustersByFat")
+    println(s"fatOffset = $fatOffset")
+    println(s"rootDirectoryOffset = $rootDirectoryOffset")
+    println(s"userDataOffset = $userDataOffset")
   }
 }
 

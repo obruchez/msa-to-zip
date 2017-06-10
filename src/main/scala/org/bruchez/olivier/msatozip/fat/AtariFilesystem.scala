@@ -16,4 +16,9 @@ class AtariFilesystem(msaImage: MsaImage) {
   }
 
   lazy val bootSector: BootSector = withData(offset = 0)(BootSector(_))
+
+  lazy val fat: Fat = withData(offset = bootSector.fatOffset)(Fat(_, bootSector.clustersByFat))
+
+  // @todo debug
+  lazy val firstEntry: Entry = withData(offset = bootSector.rootDirectoryOffset)(Entry(_))
 }

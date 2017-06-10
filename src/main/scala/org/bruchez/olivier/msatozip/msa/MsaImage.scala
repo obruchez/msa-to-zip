@@ -16,8 +16,8 @@ case class MsaImage(
     val buffer = new ArrayBuffer[Byte]()
 
     for {
-      side <- sides.indices
       track <- startTrack to endTrack
+      side <- sides.indices
       sector <- 0 until sectorsPerTrack
     } {
       buffer.append(sides(side).tracks(track - startTrack).sectors(sector).data: _*)

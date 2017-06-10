@@ -10,13 +10,29 @@ import org.bruchez.olivier.msatozip.msa.MsaImage
 import scala.collection.JavaConverters._
 
 object MsaToZip {
+  // scalastyle:off method.length
   def main(args: Array[String]): Unit = {
     //val msaImage = MsaImage(Paths.get("/Users/olivierbruchez/Downloads/atari37.msa"))
     val msaImage = MsaImage(Paths.get("/Users/olivierbruchez/Downloads/olivier1.msa"))
 
     val atariFilesystem = new AtariFilesystem(msaImage)
+
     val bootSector = atariFilesystem.bootSector
     bootSector.print()
+
+    val fat = atariFilesystem.fat
+    //println(s"fat = $fat")
+
+    /*for (startingCluster <- 0 until bootSector.clustersByFat) {
+      val clusters = fat.clustersFromStartingCluster(startingCluster)
+      println(s"clusters($startingCluster) = $clusters")
+    }*/
+
+    println(s"fat -> ${fat.clusters.size} clusters")
+
+    val firstEntry = atariFilesystem.firstEntry
+    println(s"firstEntry = $firstEntry")
+
     System.exit(0)
 
     /*val bootSector = msaImage.sides.head.tracks.head.sectors.head
@@ -54,4 +70,5 @@ object MsaToZip {
       }
     }
   }
+  // scalastyle:on method.length
 }
