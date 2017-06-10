@@ -5,6 +5,22 @@ import java.io.DataInputStream
 import java.nio.charset.StandardCharsets
 import java.time.{ LocalDate, LocalTime }
 
+import scala.collection.mutable.ListBuffer
+
+case class Entries(entries: Seq[Entry])
+
+object Entries {
+  def apply(is: DataInputStream, entryCount: Int): Entries = {
+    val entries = ListBuffer[Entry]()
+
+    for (i <- 1 to entryCount) {
+      entries.append(Entry(is))
+    }
+
+    Entries(entries)
+  }
+}
+
 sealed trait Entry
 
 case class UsedEntry(

@@ -26,6 +26,9 @@ case class BootSector(
   // The user data is after the root directory
   lazy val userDataOffset: Int = rootDirectoryOffset + rootDirectoryEntryCount * Entry.Length
 
+  // Non-root directories uses one cluster
+  lazy val normalDirectoryEntryCount: Int = sectorsPerCluster * bytesPerSector / Entry.Length
+
   def print(): Unit = {
     println(s"serialNumber = $serialNumber")
     println(s"bytesPerSector = $bytesPerSector")

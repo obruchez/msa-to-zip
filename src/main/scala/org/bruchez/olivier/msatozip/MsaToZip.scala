@@ -4,7 +4,7 @@ import java.nio.ByteBuffer
 import java.nio.file.Paths
 
 import de.waldheinz.fs.fat.FatFileSystem
-import org.bruchez.olivier.msatozip.fat.AtariFilesystem
+import org.bruchez.olivier.msatozip.fat._
 import org.bruchez.olivier.msatozip.msa.MsaImage
 
 import scala.collection.JavaConverters._
@@ -30,8 +30,23 @@ object MsaToZip {
 
     println(s"fat -> ${fat.clusters.size} clusters")
 
-    val firstEntry = atariFilesystem.firstEntry
-    println(s"firstEntry = $firstEntry")
+    val rootEntries = atariFilesystem.rootEntries
+    for {
+      (entry, index) <- rootEntries.entries.zipWithIndex
+    } {
+      println(s"$index -> $entry")
+      entry match {
+        case ue: UsedEntry if ue.attributes.directory =>
+          println(s"Directory => look at cluster ${ue.startingCluster}")
+
+          val subEntries = atariFilesystem.directorySubEntries(ue)
+          for (subEntry <- subEntries.entries) {
+            println(s"  $subEntry")
+          }
+
+        case _ =>
+      }
+    }
 
     System.exit(0)
 
