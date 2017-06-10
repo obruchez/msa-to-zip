@@ -1,4 +1,4 @@
-package org.bruchez.olivier.msatozip
+package org.bruchez.olivier.msatozip.msa
 
 import java.io.DataInputStream
 import java.nio.file._
@@ -6,11 +6,11 @@ import java.nio.file._
 import scala.collection.mutable.ArrayBuffer
 
 case class MsaImage(
-  sectorLength: Int,
+    sectorLength: Int,
     sectorsPerTrack: Int,
     startTrack: Int,
     endTrack: Int,
-    sides: Seq[MsaImage.Side]
+    sides: Seq[Side]
 ) {
   lazy val data: Array[Byte] = {
     val buffer = new ArrayBuffer[Byte]()
@@ -30,12 +30,6 @@ case class MsaImage(
 }
 
 object MsaImage {
-  case class Sector(data: Array[Byte])
-
-  case class Track(sectors: Seq[Sector])
-
-  case class Side(tracks: Seq[Track])
-
   def apply(file: Path): MsaImage = {
     val dis = new DataInputStream(Files.newInputStream(file))
 
@@ -66,7 +60,7 @@ object MsaImage {
         }
 
       MsaImage(
-        sectorLength = SectorLength,
+        sectorLength = Sector.Length,
         sectorsPerTrack = sectorsPerTrack,
         startTrack = startTrack,
         endTrack = endTrack,
@@ -78,42 +72,6 @@ object MsaImage {
   }
 
   private val MsaSignature = 0x0E0F
-
-  private val SectorLength = 512
-
-  object Track {
-    def apply(dis: DataInputStream, sectorsPerTrack: Int): Track = {
-      val dataLength = dis.readUnsignedShort()
-
-      val expectedLength = SectorLength * sectorsPerTrack
-
-      val trackData =
-        if (dataLength != expectedLength) {
-          // Compressed data
-          val decodedData = RunLengthEncoding.decode(dis, dataLength)
-
-          assert(decodedData.length == expectedLength, s"Decoded track has unexpected size (${decodedData.length} bytes vs $expectedLength bytes)")
-
-          decodedData
-        } else {
-          // Uncompressed data
-          val trackData = new Array[Byte](dataLength)
-          val readByteCount = dis.read(trackData)
-
-          assert(readByteCount == dataLength, s"Could not read entire track ($dataLength bytes)")
-
-          trackData
-        }
-
-      val sectors =
-        for (sector <- 0 until sectorsPerTrack) yield {
-          val offset = sector * SectorLength
-          Sector(data = trackData.slice(offset, offset + SectorLength))
-        }
-
-      Track(sectors = sectors)
-    }
-  }
 }
 
 /*

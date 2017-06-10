@@ -4,6 +4,8 @@ import java.nio.ByteBuffer
 import java.nio.file.Paths
 
 import de.waldheinz.fs.fat.FatFileSystem
+import org.bruchez.olivier.msatozip.fat.AtariFilesystem
+import org.bruchez.olivier.msatozip.msa.MsaImage
 
 import scala.collection.JavaConverters._
 

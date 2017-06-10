@@ -1,4 +1,4 @@
-package org.bruchez.olivier.msatozip
+package org.bruchez.olivier.msatozip.msa
 
 import java.io.DataInputStream
 
