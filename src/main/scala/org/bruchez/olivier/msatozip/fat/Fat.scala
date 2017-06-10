@@ -5,7 +5,6 @@ import org.bruchez.olivier.msatozip.DataInputStreamHelper._
 import java.io.DataInputStream
 
 import scala.collection.mutable.ListBuffer
-import scala.util.Try
 
 case class Fat(clusters: Seq[Cluster]) {
   def clustersFromStartingCluster(startingCluster: Int): Seq[Int] = {

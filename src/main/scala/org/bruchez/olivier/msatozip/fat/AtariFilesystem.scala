@@ -1,18 +1,53 @@
 package org.bruchez.olivier.msatozip.fat
 
 import java.io.{ ByteArrayInputStream, DataInputStream }
+import java.time.LocalDateTime
 
 import org.bruchez.olivier.msatozip.msa.MsaImage
+import org.bruchez.olivier.msatozip.tree._
 
 class AtariFilesystem(msaImage: MsaImage) {
-  def clusterData(cluster: Int): Array[Byte] =
+  def fileTree(): Directory = {
+    def directory(name: String, dateTime: Option[LocalDateTime], entries: Entries): Directory = {
+      val directoriesAndFiles = (for {
+        usedEntry <- entries.entries.collect { case usedEntry: UsedEntry => usedEntry }
+      } yield {
+        val fullName = usedEntry.name + Option(usedEntry.extension).filter(_.nonEmpty).map("." + _).getOrElse("")
+
+        val dateTime =
+          for {
+            date <- usedEntry.date
+            time <- usedEntry.time
+          } yield LocalDateTime.of(date, time)
+
+        if (usedEntry.attributes.directory) {
+          if (!Set(".", "..").contains(usedEntry.name)) {
+            Some(directory(fullName, dateTime, directorySubEntries(usedEntry)))
+          } else {
+            None
+          }
+        } else {
+          Some(File(fullName, dateTime, data = fileData(usedEntry)))
+        }
+      }).flatten
+
+      val directories = directoriesAndFiles collect { case directory: Directory => directory } sortBy (_.name)
+      val files = directoriesAndFiles collect { case file: File => file } sortBy (_.name)
+
+      Directory(name, dateTime, directories ++ files)
+    }
+
+    directory(name = "", dateTime = None, rootEntries)
+  }
+
+  private def clusterData(cluster: Int): Seq[Byte] =
     withData(offset = offsetFromCluster(cluster)) { is =>
       val buffer = new Array[Byte](bootSector.sectorsPerCluster * bootSector.bytesPerSector)
       is.read(buffer)
       buffer
     }
 
-  def fileData(fileEntry: UsedEntry): Seq[Byte] = {
+  private def fileData(fileEntry: UsedEntry): Seq[Byte] = {
     assert(!fileEntry.attributes.directory, s"Cannot list sub-entries for non-directory entry")
 
     val bytes = fat.clustersFromStartingCluster(fileEntry.startingCluster).flatMap(clusterData)
@@ -20,7 +55,7 @@ class AtariFilesystem(msaImage: MsaImage) {
     bytes.take(fileEntry.size)
   }
 
-  def directorySubEntries(directoryEntry: UsedEntry): Entries = {
+  private def directorySubEntries(directoryEntry: UsedEntry): Entries = {
     assert(directoryEntry.attributes.directory, s"Cannot list sub-entries for non-directory entry")
 
     val offset = offsetFromCluster(directoryEntry.startingCluster)

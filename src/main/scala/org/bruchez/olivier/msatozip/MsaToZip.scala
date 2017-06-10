@@ -1,12 +1,12 @@
 package org.bruchez.olivier.msatozip
 
 import java.nio.ByteBuffer
-import java.nio.charset.StandardCharsets
 import java.nio.file.Paths
 
 import de.waldheinz.fs.fat.FatFileSystem
 import org.bruchez.olivier.msatozip.fat._
 import org.bruchez.olivier.msatozip.msa.MsaImage
+import org.bruchez.olivier.msatozip.tree._
 
 import scala.collection.JavaConverters._
 
@@ -18,40 +18,23 @@ object MsaToZip {
 
     val atariFilesystem = new AtariFilesystem(msaImage)
 
-    val bootSector = atariFilesystem.bootSector
-    bootSector.print()
+    val fileTree = atariFilesystem.fileTree()
 
-    val fat = atariFilesystem.fat
-    //println(s"fat = $fat")
+    def dump(directory: Directory, level: Int = 0): Unit = {
+      for {
+        child <- directory.children
+      } {
+        println("  " * level + child.name + child.dateTime.map(dt => s" ($dt)").getOrElse(""))
 
-    /*for (startingCluster <- 0 until bootSector.clustersByFat) {
-      val clusters = fat.clustersFromStartingCluster(startingCluster)
-      println(s"clusters($startingCluster) = $clusters")
-    }*/
-
-    println(s"fat -> ${fat.clusters.size} clusters")
-
-    val rootEntries = atariFilesystem.rootEntries
-    for {
-      (entry, index) <- rootEntries.entries.zipWithIndex
-    } {
-      println(s"$index -> $entry")
-      entry match {
-        case ue: UsedEntry =>
-          if (ue.attributes.directory) {
-            println(s"Directory => look at cluster ${ue.startingCluster}")
-
-            val subEntries = atariFilesystem.directorySubEntries(ue)
-            for (subEntry <- subEntries.entries) {
-              println(s"  $subEntry")
-            }
-          } else {
-            val string = new String(atariFilesystem.fileData(ue).toArray, StandardCharsets.US_ASCII)
-            //println(s"${ue.name}.${ue.extension} -> ${string.take(32)}")
-          }
-        case _ =>
+        child match {
+          case f: File =>
+          case d: Directory =>
+            dump(d, level = level + 1)
+        }
       }
     }
+
+    dump(fileTree)
 
     System.exit(0)
 
