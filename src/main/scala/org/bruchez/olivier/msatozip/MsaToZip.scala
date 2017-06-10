@@ -1,6 +1,7 @@
 package org.bruchez.olivier.msatozip
 
 import java.nio.ByteBuffer
+import java.nio.charset.StandardCharsets
 import java.nio.file.Paths
 
 import de.waldheinz.fs.fat.FatFileSystem
@@ -36,14 +37,18 @@ object MsaToZip {
     } {
       println(s"$index -> $entry")
       entry match {
-        case ue: UsedEntry if ue.attributes.directory =>
-          println(s"Directory => look at cluster ${ue.startingCluster}")
+        case ue: UsedEntry =>
+          if (ue.attributes.directory) {
+            println(s"Directory => look at cluster ${ue.startingCluster}")
 
-          val subEntries = atariFilesystem.directorySubEntries(ue)
-          for (subEntry <- subEntries.entries) {
-            println(s"  $subEntry")
+            val subEntries = atariFilesystem.directorySubEntries(ue)
+            for (subEntry <- subEntries.entries) {
+              println(s"  $subEntry")
+            }
+          } else {
+            val string = new String(atariFilesystem.fileData(ue).toArray, StandardCharsets.US_ASCII)
+            //println(s"${ue.name}.${ue.extension} -> ${string.take(32)}")
           }
-
         case _ =>
       }
     }

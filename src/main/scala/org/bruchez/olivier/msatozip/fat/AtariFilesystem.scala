@@ -5,6 +5,21 @@ import java.io.{ ByteArrayInputStream, DataInputStream }
 import org.bruchez.olivier.msatozip.msa.MsaImage
 
 class AtariFilesystem(msaImage: MsaImage) {
+  def clusterData(cluster: Int): Array[Byte] =
+    withData(offset = offsetFromCluster(cluster)) { is =>
+      val buffer = new Array[Byte](bootSector.sectorsPerCluster * bootSector.bytesPerSector)
+      is.read(buffer)
+      buffer
+    }
+
+  def fileData(fileEntry: UsedEntry): Seq[Byte] = {
+    assert(!fileEntry.attributes.directory, s"Cannot list sub-entries for non-directory entry")
+
+    val bytes = fat.clustersFromStartingCluster(fileEntry.startingCluster).flatMap(clusterData)
+
+    bytes.take(fileEntry.size)
+  }
+
   def directorySubEntries(directoryEntry: UsedEntry): Entries = {
     assert(directoryEntry.attributes.directory, s"Cannot list sub-entries for non-directory entry")
 

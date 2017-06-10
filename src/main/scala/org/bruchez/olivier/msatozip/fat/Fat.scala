@@ -8,7 +8,7 @@ import scala.collection.mutable.ListBuffer
 import scala.util.Try
 
 case class Fat(clusters: Seq[Cluster]) {
-  def clustersFromStartingCluster(startingCluster: Int): Try[Seq[Int]] = {
+  def clustersFromStartingCluster(startingCluster: Int): Seq[Int] = {
     @annotation.tailrec
     def clustersFromStartingCluster(clusterIndex: Int, reverseAcc: List[Int]): Seq[Int] = {
       val cluster = clusters(clusterIndex)
@@ -23,7 +23,7 @@ case class Fat(clusters: Seq[Cluster]) {
       }
     }
 
-    Try(clustersFromStartingCluster(startingCluster, reverseAcc = List()))
+    clustersFromStartingCluster(startingCluster, reverseAcc = List())
   }
 }
 
