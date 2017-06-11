@@ -3,7 +3,7 @@ package org.bruchez.olivier.msatozip.fat
 import org.bruchez.olivier.msatozip.DataInputStreamHelper._
 import java.io.DataInputStream
 import java.nio.charset.StandardCharsets
-import java.time.{ LocalDate, LocalTime }
+import java.time.{ LocalDate, LocalDateTime, LocalTime }
 
 import scala.collection.mutable.ListBuffer
 
@@ -24,14 +24,20 @@ object Entries {
 sealed trait Entry
 
 case class UsedEntry(
-  name: String,
-  extension: String,
-  attributes: Attributes,
-  time: Option[LocalTime],
-  date: Option[LocalDate],
-  startingCluster: Int,
-  size: Int
-) extends Entry
+    name: String,
+    extension: String,
+    attributes: Attributes,
+    time: Option[LocalTime],
+    date: Option[LocalDate],
+    startingCluster: Int,
+    size: Int
+) extends Entry {
+  lazy val filename: String =
+    name + Option(extension).filter(_.nonEmpty).map("." + _).getOrElse("")
+
+  lazy val dateTime: Option[LocalDateTime] =
+    for { date <- this.date; time <- this.time } yield LocalDateTime.of(date, time)
+}
 
 case object FreeEntry extends Entry
 

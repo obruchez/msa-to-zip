@@ -13,6 +13,9 @@ import scala.collection.JavaConverters._
 object MsaToZip {
   // scalastyle:off method.length
   def main(args: Array[String]): Unit = {
+    Batch.convertToZip(Paths.get("/Users/olivierbruchez/Downloads/MSA"))
+    System.exit(0)
+
     //val msaImage = MsaImage(Paths.get("/Users/olivierbruchez/Downloads/atari37.msa"))
     val msaImage = MsaImage(Paths.get("/Users/olivierbruchez/Downloads/olivier1.msa"))
 
@@ -24,11 +27,15 @@ object MsaToZip {
       for {
         child <- directory.children
       } {
-        println("  " * level + child.name + child.dateTime.map(dt => s" ($dt)").getOrElse(""))
+        print("  " * level + child.name + child.dateTime.map(dt => s" ($dt)").getOrElse(""))
 
         child match {
-          case f: File =>
+          case _: File =>
+            println()
+          case _: CorruptedFile =>
+            println(" (corrupted)")
           case d: Directory =>
+            println()
             dump(d, level = level + 1)
         }
       }

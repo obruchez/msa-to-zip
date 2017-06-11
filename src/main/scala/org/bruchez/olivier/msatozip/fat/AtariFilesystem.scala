@@ -6,30 +6,50 @@ import java.time.LocalDateTime
 import org.bruchez.olivier.msatozip.msa.MsaImage
 import org.bruchez.olivier.msatozip.tree._
 
+import scala.util._
+
+/*
+Based on following documentation:
+
+- http://info-coach.fr/atari/software/FD-Soft.php
+- https://en.wikipedia.org/wiki/Design_of_the_FAT_file_system
+- http://forensicswiki.org/wiki/FAT
+ */
+
 class AtariFilesystem(msaImage: MsaImage) {
+  // scalastyle:off cyclomatic.complexity
   def fileTree(): Directory = {
     def directory(name: String, dateTime: Option[LocalDateTime], entries: Entries): Directory = {
-      val directoriesAndFiles = (for {
-        usedEntry <- entries.entries.collect { case usedEntry: UsedEntry => usedEntry }
-      } yield {
-        val fullName = usedEntry.name + Option(usedEntry.extension).filter(_.nonEmpty).map("." + _).getOrElse("")
+      val usedEntries = entries.entries.collect { case usedEntry: UsedEntry => usedEntry }
 
-        val dateTime =
-          for {
-            date <- usedEntry.date
-            time <- usedEntry.time
-          } yield LocalDateTime.of(date, time)
-
-        if (usedEntry.attributes.directory) {
-          if (!Set(".", "..").contains(usedEntry.name)) {
-            Some(directory(fullName, dateTime, directorySubEntries(usedEntry)))
-          } else {
-            None
-          }
+      val directoriesAndFiles = usedEntries flatMap { usedEntry =>
+        if (usedEntry.name == "." || usedEntry.name == "..") {
+          // Ignore current/parent directories
+          None
+        } else if (usedEntry.attributes.volumeLabel || usedEntry.startingCluster < 2 || usedEntry.size < 0) {
+          // Silently skip abnormal entries
+          None
+        } else if (usedEntry.attributes.directory) {
+          // Directory => retrieve sub-entries
+          Some(directory(usedEntry.filename, usedEntry.dateTime, directorySubEntries(usedEntry)))
+        } else if (usedEntry.size == 0) {
+          // Empty file => do not examine starting cluster
+          Some(File(usedEntry.filename, usedEntry.dateTime, data = Seq()))
         } else {
-          Some(File(fullName, dateTime, data = fileData(usedEntry)))
+          Try(fileData(usedEntry)) match {
+            case Failure(ce: ClusterException) =>
+              //println(s"***** ${usedEntry.filename} -> size ${usedEntry.size}, cluster = ${usedEntry.startingCluster} -> ${ce.getMessage}")
+              //usedEntry.attributes.print()
+
+              // @todo return data before corrupted cluster
+              Some(CorruptedFile(usedEntry.filename, usedEntry.dateTime, data = Seq(), corruption = ce.corruption))
+            case Failure(throwable) =>
+              throw throwable
+            case Success(data) =>
+              Some(File(usedEntry.filename, usedEntry.dateTime, data = data))
+          }
         }
-      }).flatten
+      }
 
       val directories = directoriesAndFiles collect { case directory: Directory => directory } sortBy (_.name)
       val files = directoriesAndFiles collect { case file: File => file } sortBy (_.name)
@@ -39,6 +59,7 @@ class AtariFilesystem(msaImage: MsaImage) {
 
     directory(name = "", dateTime = None, rootEntries)
   }
+  // scalastyle:on cyclomatic.complexity
 
   private def clusterData(cluster: Int): Seq[Byte] =
     withData(offset = offsetFromCluster(cluster)) { is =>

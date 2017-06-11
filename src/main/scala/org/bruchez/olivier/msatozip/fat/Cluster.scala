@@ -13,7 +13,7 @@ case object BadSector extends Cluster
 case class LastCluster(value: Int) extends Cluster
 
 object Cluster {
-  def apply(value: Int): Cluster = {
+  def apply(cluster: Int, value: Int): Cluster = {
     if (value == 0x000) {
       AvailableCluster
     } else if (value >= 0x002 && value <= 0xfef) {
@@ -25,7 +25,17 @@ object Cluster {
     } else if (value >= 0xff8 && value <= 0xfff) {
       LastCluster(value)
     } else {
-      throw new Exception(s"Unexpected cluster value: $value")
+      throw new UnexpectedClusterValueException(cluster, value)
     }
   }
 }
+
+abstract class ClusterException(val corruption: Corruption) extends Exception(corruption.description)
+
+class UnexpectedClusterValueException(cluster: Int, value: Int) extends ClusterException(UnexpectedClusterValue(cluster, value))
+
+class EmptyClusterException(cluster: Int) extends ClusterException(EmptyCluster(cluster))
+
+class ReservedClusterException(cluster: Int) extends ClusterException(ReservedCluster(cluster))
+
+class BadClusterException(cluster: Int) extends ClusterException(BadCluster(cluster))
