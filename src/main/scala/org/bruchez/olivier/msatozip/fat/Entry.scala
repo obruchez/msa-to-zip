@@ -36,7 +36,11 @@ case class UsedEntry(
     name + Option(extension).filter(_.nonEmpty).map("." + _).getOrElse("")
 
   lazy val dateTime: Option[LocalDateTime] =
-    for { date <- this.date; time <- this.time } yield LocalDateTime.of(date, time)
+    if (date.isEmpty && time.isEmpty) {
+      None
+    } else {
+      Some(LocalDateTime.of(date.getOrElse(UsedEntry.DefaultDate), time.getOrElse(UsedEntry.DefaultTime)))
+    }
 }
 
 case object FreeEntry extends Entry
@@ -130,6 +134,9 @@ object UsedEntry {
       None
     }
   }
+
+  protected val DefaultTime: LocalTime = LocalTime.ofNanoOfDay(0)
+  protected val DefaultDate: LocalDate = LocalDate.ofEpochDay(0)
 
   private val NameLength = 8
   private val ExtensionLength = 3
