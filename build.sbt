@@ -1,6 +1,6 @@
 name := "msa-to-zip"
 version := "1.0"
-scalaVersion := "2.12.2"
+scalaVersion := "2.12.3"
 
 libraryDependencies += "de.waldheinz" % "fat32-lib" % "0.6.5"
 
