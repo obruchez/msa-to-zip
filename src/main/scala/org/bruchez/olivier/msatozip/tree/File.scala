@@ -68,5 +68,6 @@ case class CorruptedFile(
     data: Seq[Byte],
     corruption: Corruption
 ) extends DirectoryOrFile {
-  override def logs(level: Int): Seq[String] = Seq(logLine(level, sizeOption = Some(data.size)) + " (corrupted)")
+  override def logs(level: Int): Seq[String] =
+    Seq(logLine(level, sizeOption = Some(data.size)) + " (corrupted)")
 }

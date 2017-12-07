@@ -15,7 +15,9 @@ object Track {
         // Compressed data
         val decodedData = RunLengthEncoding.decode(dis, dataLength)
 
-        assert(decodedData.length == expectedLength, s"Decoded track has unexpected size (${decodedData.length} bytes vs $expectedLength bytes)")
+        assert(
+          decodedData.length == expectedLength,
+          s"Decoded track has unexpected size (${decodedData.length} bytes vs $expectedLength bytes)")
 
         decodedData
       } else {

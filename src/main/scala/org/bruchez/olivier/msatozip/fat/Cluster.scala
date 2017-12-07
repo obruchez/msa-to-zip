@@ -30,9 +30,11 @@ object Cluster {
   }
 }
 
-abstract class ClusterException(val corruption: Corruption) extends Exception(corruption.description)
+abstract class ClusterException(val corruption: Corruption)
+    extends Exception(corruption.description)
 
-class UnexpectedClusterValueException(cluster: Int, value: Int) extends ClusterException(UnexpectedClusterValue(cluster, value))
+class UnexpectedClusterValueException(cluster: Int, value: Int)
+    extends ClusterException(UnexpectedClusterValue(cluster, value))
 
 class EmptyClusterException(cluster: Int) extends ClusterException(EmptyCluster(cluster))
 

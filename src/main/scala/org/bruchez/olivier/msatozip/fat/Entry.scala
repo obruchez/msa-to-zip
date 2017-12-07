@@ -3,7 +3,7 @@ package org.bruchez.olivier.msatozip.fat
 import org.bruchez.olivier.msatozip.DataInputStreamHelper._
 import java.io.DataInputStream
 import java.nio.charset.StandardCharsets
-import java.time.{ LocalDate, LocalDateTime, LocalTime }
+import java.time.{LocalDate, LocalDateTime, LocalTime}
 
 import scala.collection.mutable.ListBuffer
 
@@ -39,7 +39,9 @@ case class UsedEntry(
     if (date.isEmpty && time.isEmpty) {
       None
     } else {
-      Some(LocalDateTime.of(date.getOrElse(UsedEntry.DefaultDate), time.getOrElse(UsedEntry.DefaultTime)))
+      Some(
+        LocalDateTime.of(date.getOrElse(UsedEntry.DefaultDate),
+                         time.getOrElse(UsedEntry.DefaultTime)))
     }
 }
 

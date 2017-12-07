@@ -1,6 +1,6 @@
 package org.bruchez.olivier.msatozip.fat
 
-import java.io.{ ByteArrayInputStream, DataInputStream }
+import java.io.{ByteArrayInputStream, DataInputStream}
 import java.time.LocalDateTime
 
 import org.bruchez.olivier.msatozip.msa.MsaImage
@@ -42,7 +42,11 @@ class AtariFilesystem(msaImage: MsaImage) {
               //usedEntry.attributes.print()
 
               // @todo return data before corrupted cluster
-              Some(CorruptedFile(usedEntry.filename, usedEntry.dateTime, data = Seq(), corruption = ce.corruption))
+              Some(
+                CorruptedFile(usedEntry.filename,
+                              usedEntry.dateTime,
+                              data = Seq(),
+                              corruption = ce.corruption))
             case Failure(throwable) =>
               throw throwable
             case Success(data) =>
@@ -52,7 +56,7 @@ class AtariFilesystem(msaImage: MsaImage) {
       }
 
       val directories = directoriesAndFiles collect { case directory: Directory => directory } sortBy (_.name)
-      val files = directoriesAndFiles collect { case file: File => file } sortBy (_.name)
+      val files = directoriesAndFiles collect { case file: File                 => file } sortBy (_.name)
 
       Directory(name, dateTime, directories ++ files)
     }
@@ -106,5 +110,6 @@ class AtariFilesystem(msaImage: MsaImage) {
     withData(offset = bootSector.fatOffset)(Fat(_, bootSector.clustersByFat))
 
   lazy val rootEntries: Entries =
-    withData(offset = bootSector.rootDirectoryOffset)(Entries(_, bootSector.rootDirectoryEntryCount))
+    withData(offset = bootSector.rootDirectoryOffset)(
+      Entries(_, bootSector.rootDirectoryEntryCount))
 }
