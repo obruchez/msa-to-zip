@@ -26,8 +26,8 @@ case class MsaImage(
     buffer.toArray
   }
 
-  lazy val totalLength
-    : Long = sides.length * (endTrack - startTrack + 1) * sectorsPerTrack * sectorLength
+  lazy val totalLength: Long =
+    sides.length * (endTrack - startTrack + 1) * sectorsPerTrack * sectorLength
 }
 
 object MsaImage {
@@ -57,8 +57,10 @@ object MsaImage {
 
       val sides =
         for (side <- 0 until sideCount) yield {
-          Side(tracks = for (track <- startTrack to endTrack)
-            yield tracksBySideAndTrack((side, track)))
+          Side(tracks =
+            for (track <- startTrack to endTrack)
+              yield tracksBySideAndTrack((side, track))
+          )
         }
 
       MsaImage(
@@ -73,7 +75,7 @@ object MsaImage {
     }
   }
 
-  private val MsaSignature = 0x0E0F
+  private val MsaSignature = 0x0e0f
 }
 
 /*

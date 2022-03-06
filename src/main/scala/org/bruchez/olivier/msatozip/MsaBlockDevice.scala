@@ -24,7 +24,7 @@ class MsaBlockDevice(msaImage: MsaImage) extends de.waldheinz.fs.BlockDevice {
   override def isReadOnly: Boolean = true
 
   override def read(devOffset: Long, dest: ByteBuffer): Unit = {
-    //println(s"READ, offset = $devOffset, remaining = ${dest.remaining}")
+    // println(s"READ, offset = $devOffset, remaining = ${dest.remaining}")
     dest.put(msaImage.data.slice(devOffset.toInt, devOffset.toInt + dest.remaining))
   }
 

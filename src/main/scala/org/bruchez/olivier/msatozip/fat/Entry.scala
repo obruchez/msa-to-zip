@@ -17,7 +17,7 @@ object Entries {
       entries.append(Entry(is))
     }
 
-    Entries(entries)
+    Entries(entries.toSeq)
   }
 }
 
@@ -40,8 +40,11 @@ case class UsedEntry(
       None
     } else {
       Some(
-        LocalDateTime.of(date.getOrElse(UsedEntry.DefaultDate),
-                         time.getOrElse(UsedEntry.DefaultTime)))
+        LocalDateTime.of(
+          date.getOrElse(UsedEntry.DefaultDate),
+          time.getOrElse(UsedEntry.DefaultTime)
+        )
+      )
     }
 }
 
@@ -119,7 +122,9 @@ object UsedEntry {
     val hours = (value >> 11) & 0x1f
     val minutes = (value >> 5) & 0x3f
     val seconds = ((value >> 0) & 0x1f) * 2
-    if (hours >= 0 && hours <= 23 && minutes >= 0 && minutes <= 59 && seconds >= 0 && seconds <= 59) {
+    if (
+      hours >= 0 && hours <= 23 && minutes >= 0 && minutes <= 59 && seconds >= 0 && seconds <= 59
+    ) {
       Some(LocalTime.of(hours, minutes, seconds))
     } else {
       None

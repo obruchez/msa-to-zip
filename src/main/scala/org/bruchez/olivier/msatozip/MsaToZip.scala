@@ -13,11 +13,11 @@ import scala.collection.JavaConverters._
 object MsaToZip {
   // scalastyle:off method.length
   def main(args: Array[String]): Unit = {
-    //Batch.convertToZip(Paths.get("/Users/olivierbruchez/Downloads/MSA"))
-    //System.exit(0)
+    // Batch.convertToZip(Paths.get("/Users/olivierbruchez/Downloads/MSA"))
+    // System.exit(0)
 
     val msaPath = Paths.get("/Users/olivierbruchez/Downloads/MSA test images/olivier1.msa")
-    //val msaPath = Paths.get("/Users/olivierbruchez/Downloads/MSA test images/atari37.msa")
+    // val msaPath = Paths.get("/Users/olivierbruchez/Downloads/MSA test images/atari37.msa")
     val msaImage = MsaImage(msaPath)
 
     val atariFilesystem = new AtariFilesystem(msaImage)
@@ -58,8 +58,8 @@ object MsaToZip {
         val buffer = ByteBuffer.allocate(fileLength)
         file.read(0, buffer)
 
-        //val string = new String(buffer.array, "ISO-8859-1")
-        //println(s"string = $string")
+        // val string = new String(buffer.array, "ISO-8859-1")
+        // println(s"string = $string")
       }
     }
   }

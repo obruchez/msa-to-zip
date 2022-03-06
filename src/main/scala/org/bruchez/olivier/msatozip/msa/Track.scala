@@ -17,7 +17,8 @@ object Track {
 
         assert(
           decodedData.length == expectedLength,
-          s"Decoded track has unexpected size (${decodedData.length} bytes vs $expectedLength bytes)")
+          s"Decoded track has unexpected size (${decodedData.length} bytes vs $expectedLength bytes)"
+        )
 
         decodedData
       } else {

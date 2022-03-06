@@ -40,6 +40,6 @@ object Fat {
       clusters.append(Cluster(cluster = clusterIndex + 1, value = (clusterPair >> 12) & 0xfff))
     }
 
-    Fat(clusters)
+    Fat(clusters.toSeq)
   }
 }

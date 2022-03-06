@@ -21,8 +21,8 @@ case class BootSector(
   lazy val fatOffset: Int = reservedSectorCount * bytesPerSector
 
   // The root directory is after the boot sector and the FAT(s)
-  lazy val rootDirectoryOffset
-    : Int = (reservedSectorCount + fatSizeInSectors * fatCount) * bytesPerSector
+  lazy val rootDirectoryOffset: Int =
+    (reservedSectorCount + fatSizeInSectors * fatCount) * bytesPerSector
 
   // The user data is after the root directory
   lazy val userDataOffset: Int = rootDirectoryOffset + rootDirectoryEntryCount * Entry.Length

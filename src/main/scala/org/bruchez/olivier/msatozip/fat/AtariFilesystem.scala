@@ -26,7 +26,9 @@ class AtariFilesystem(msaImage: MsaImage) {
         if (usedEntry.name == "." || usedEntry.name == "..") {
           // Ignore current/parent directories
           None
-        } else if (usedEntry.attributes.volumeLabel || usedEntry.startingCluster < 2 || usedEntry.size < 0) {
+        } else if (
+          usedEntry.attributes.volumeLabel || usedEntry.startingCluster < 2 || usedEntry.size < 0
+        ) {
           // Silently skip abnormal entries
           None
         } else if (usedEntry.attributes.directory) {
@@ -38,15 +40,18 @@ class AtariFilesystem(msaImage: MsaImage) {
         } else {
           Try(fileData(usedEntry)) match {
             case Failure(ce: ClusterException) =>
-              //println(s"***** ${usedEntry.filename} -> size ${usedEntry.size}, cluster = ${usedEntry.startingCluster} -> ${ce.getMessage}")
-              //usedEntry.attributes.print()
+              // println(s"***** ${usedEntry.filename} -> size ${usedEntry.size}, cluster = ${usedEntry.startingCluster} -> ${ce.getMessage}")
+              // usedEntry.attributes.print()
 
               // @todo return data before corrupted cluster
               Some(
-                CorruptedFile(usedEntry.filename,
-                              usedEntry.dateTime,
-                              data = Seq(),
-                              corruption = ce.corruption))
+                CorruptedFile(
+                  usedEntry.filename,
+                  usedEntry.dateTime,
+                  data = Seq(),
+                  corruption = ce.corruption
+                )
+              )
             case Failure(throwable) =>
               throw throwable
             case Success(data) =>
@@ -55,8 +60,10 @@ class AtariFilesystem(msaImage: MsaImage) {
         }
       }
 
-      val directories = directoriesAndFiles collect { case directory: Directory => directory } sortBy (_.name)
-      val files = directoriesAndFiles collect { case file: File                 => file } sortBy (_.name)
+      val directories = directoriesAndFiles collect { case directory: Directory =>
+        directory
+      } sortBy (_.name)
+      val files = directoriesAndFiles collect { case file: File => file } sortBy (_.name)
 
       Directory(name, dateTime, directories ++ files)
     }
@@ -111,5 +118,6 @@ class AtariFilesystem(msaImage: MsaImage) {
 
   lazy val rootEntries: Entries =
     withData(offset = bootSector.rootDirectoryOffset)(
-      Entries(_, bootSector.rootDirectoryEntryCount))
+      Entries(_, bootSector.rootDirectoryEntryCount)
+    )
 }

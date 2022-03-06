@@ -32,5 +32,5 @@ object RunLengthEncoding {
     buffer.toArray
   }
 
-  private val RunLengthByte = 0xE5.toByte
+  private val RunLengthByte = 0xe5.toByte
 }
